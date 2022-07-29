@@ -26,9 +26,9 @@ let workInProgressRoot = null;
 let currentRoot = null;
 let deletions = null;
 // 申明两个全局变量，用来处理useState
-// wipFiber是当前的函数组件fiber节点
-// hookIndex是当前函数组件内部useState状态计数
-let wipFiber = null;
+// workInProgressFiber 是当前的函数组件fiber节点
+// hookIndex 是当前函数组件内部useState状态计数
+let workInProgressFiber = null;
 let hookIndex = null;
 
 // workLoop用来调度任务
@@ -80,9 +80,9 @@ function performUnitOfWork(fiber) {
 // updateFunctionComponent 处理函数组件等
 function updateFunctionComponent(fiber) {
   // 支持useState，初始化变量
-  wipFiber = fiber;
+  workInProgressFiber = fiber;
   hookIndex = 0;
-  wipFiber.hooks = [];        // hooks用来存储具体的state序列
+  workInProgressFiber.hooks = [];        // hooks用来存储具体的state序列
 
   // 函数组件的type就是个函数，直接拿来执行可以获得DOM元素
   const children = [fiber.type(fiber.props)];
@@ -135,66 +135,50 @@ function reconcileChildren(workInProgressFiber, elements) {
   let oldFiber = workInProgressFiber.alternate && workInProgressFiber.alternate.child;  // 获取上次的fiber树
   let prevSibling = null;
   let index = 0;
-  if (elements && elements.length) {
-    // 第一次没有oldFiber，那全部是REPLACEMENT
-    if (!oldFiber) {
-      for (let i = 0; i < elements.length; i++) {
-        const element = elements[i];
-        const newFiber = buildNewFiber(element, workInProgressFiber);
-
-        // 父级的child指向第一个子元素
-        if (i === 0) {
-          workInProgressFiber.child = newFiber;
-        } else {
-          // 每个子元素拥有指向下一个子元素的指针
-          prevSibling.sibling = newFiber;
-        }
-
-        prevSibling = newFiber;
-      }
-    }
-
-    while (index < elements.length && oldFiber) {
-      let element = elements[index];
-      let newFiber = null;
-
-      // 对比oldFiber和当前element
-      const sameType = oldFiber && element && oldFiber.type === element.type;  //检测类型是不是一样
-      // 先比较元素类型
-      if (sameType) {
-        // 如果类型一样，复用节点，更新props
-        newFiber = {
-          type: oldFiber.type,
-          props: element.props,
-          dom: oldFiber.dom,
-          return: workInProgressFiber,
-          alternate: oldFiber,          // 记录下上次状态
-          effectTag: 'UPDATE'           // 添加一个操作标记
-        }
-      } else if (!sameType && element) {
-        // 如果类型不一样，有新的节点，创建新节点替换老节点
-        newFiber = buildNewFiber(element, workInProgressFiber)
-      } else if (!sameType && oldFiber) {
-        // 如果类型不一样，没有新节点，有老节点，删除老节点
-        oldFiber.effectTag = 'DELETION';   // 添加删除标记
-        deletions.push(oldFiber);          // 一个数组收集所有需要删除的节点
-      }
-
-
-      oldFiber = oldFiber.sibling;     // 循环处理兄弟元素
-
-      // 父级的child指向第一个子元素
-      if (index === 0) {
-        workInProgressFiber.child = newFiber;
-      } else {
-        // 每个子元素拥有指向下一个子元素的指针
-        prevSibling.sibling = newFiber;
-      }
-
-      prevSibling = newFiber;
-      index++;
-    }
+  if (!elements || !elements.length) {
+    return;
   }
+
+  while (index < elements.length) {
+    let element = elements[index];
+    let newFiber = null;
+
+    // 对比oldFiber和当前element
+    const sameType = oldFiber && element && oldFiber.type === element.type;  //检测类型是不是一样
+    // 先比较元素类型
+    if (sameType) {
+      // 如果类型一样，复用节点，更新props
+      newFiber = {
+        type: oldFiber.type,
+        props: element.props,
+        dom: oldFiber.dom,
+        return: workInProgressFiber,
+        alternate: oldFiber,          // 记录下上次状态
+        effectTag: 'UPDATE'           // 添加一个操作标记
+      }
+    } else if (!sameType && element) {
+      // 如果类型不一样，有新的节点，创建新节点替换老节点
+      newFiber = buildNewFiber(element, workInProgressFiber)
+    } else if (!sameType && oldFiber) {
+      // 如果类型不一样，没有新节点，有老节点，删除老节点
+      oldFiber.effectTag = 'DELETION';   // 添加删除标记
+      deletions.push(oldFiber);          // 一个数组收集所有需要删除的节点
+    }
+
+    oldFiber = oldFiber ? oldFiber.sibling : null;     // 循环处理兄弟元素
+
+    // 父级的child指向第一个子元素
+    if (index === 0) {
+      workInProgressFiber.child = newFiber;
+    } else {
+      // 每个子元素拥有指向下一个子元素的指针
+      prevSibling.sibling = newFiber;
+    }
+
+    prevSibling = newFiber;
+    index++;
+  }
+
 }
 
 // 创建Fiber 结构
@@ -308,7 +292,7 @@ class Component {
 
 function useState(init) {
   // 取出上次的Hook
-  const oldHook = wipFiber.alternate && wipFiber.alternate.hooks && wipFiber.alternate.hooks[hookIndex];
+  const oldHook = workInProgressFiber.alternate && workInProgressFiber.alternate.hooks && workInProgressFiber.alternate.hooks[hookIndex];
 
   // hook数据结构
   const hook = {
@@ -316,7 +300,7 @@ function useState(init) {
   }
 
   // 将所有useState调用按照顺序存到fiber节点上
-  wipFiber.hooks.push(hook);
+  workInProgressFiber.hooks.push(hook);
   hookIndex++;
 
   // 修改state的方法

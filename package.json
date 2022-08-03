@@ -14,8 +14,9 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
-    "test": "react-app-rewired test --env=jsdom",
-    "eject": "react-scripts eject"
+    "build:react": "cd react && npm run build && cd .. && node ./tools/index.js",
+    "build:copy": "node ./tools/index.js",
+    "test": "react-app-rewired test --env=jsdom"
   },
   "eslintConfig": {
     "extends": [
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "customize-cra": "^1.0.0",
+    "fs-extra": "^10.1.0",
     "react-app-rewired": "^2.2.1"
   }
 }

@@ -6,7 +6,7 @@ const {
 module.exports = {
   webpack: override((config) => {
     config.externals = {
-      "react": "React",
+      react: "React",
       "react-dom": "ReactDOM"
     }
     return config

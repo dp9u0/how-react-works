@@ -12,10 +12,6 @@ module.exports = {
     return config
   }),
   devServer: overrideDevServer((config) => {
-    // config.externals = {
-    //   "react": "React",
-    //   "react-dom": "ReactDOM"
-    // }
     return config
   }
   )

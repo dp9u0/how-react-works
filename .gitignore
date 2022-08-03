@@ -10,6 +10,7 @@
 
 # production
 /build
+/public/react
 
 # misc
 .DS_Store

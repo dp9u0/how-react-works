@@ -2,6 +2,15 @@
 
 基于 18.2.0 源码，解析React 工作原理
 
+## First Of All
+
+项目基于这篇文章搭建了 react debug 环境： https://juejin.cn/post/7126501202866470949
+
+可以运行 npm run build:react，构建 react 并将生成的bundle 文件复制到 public 目录下，修改了 react 18.2.0 源码 build scripts，可以生成 source map
+
+具体可以阅读上面这篇文章，了解实现思路。
+
+
 ## Overview
 
 我们接触到的 React 代码集中在两个 package 中 react 和 react-dom，其中 react 暴露了对外接口，如 [React.createElement](./articles/React.createElement.md)，[React.createRef](./articles/React.createRef.md)，[React.Component](./articles/React.Component.md)（包括 PureComponent），而 react-dom 则是提供 render 和 任务调度等功能，也就是说，react 核心代码都在 react-dom 中。

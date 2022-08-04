@@ -14,7 +14,7 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
-    "build:react": "cd react && npm run build && cd .. && node ./tools/index.js",
+    "build:react": "cd react && yarn install && npm run build && cd .. && node ./tools/index.js",
     "build:copy": "node ./tools/index.js",
     "test": "react-app-rewired test --env=jsdom"
   },

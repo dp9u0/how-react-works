@@ -38,15 +38,6 @@ React 中 react 代码非常简单，都是提供一些 基本类型 和 工厂�
 * [常见数据结构](./articles/struct.md)
 * [render](./articles/ReactDOM.render.md)
 * [updateContainer](./articles/updateContainer.md)
-* setState
-* forceRender
-* currentTime
-* expirationTime
-
-## Task Schedule
-
-## Commit
-
-## Others
-
-## Hooks
+* [Schedule](./articles/Schedule.md)
+* [Lane](./articles/Lane.md)
+* [Fiber](./articles/Fiber.md)

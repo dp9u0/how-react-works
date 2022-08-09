@@ -47,7 +47,6 @@
     /* Source Map Options */
     "sourceRoot": "" /* sourceRoot用于指定调试器应该找到TypeScript文件而不是源文件位置，这个值会被写进.map文件里 */,
     "mapRoot": "" /* mapRoot用于指定调试器找到映射文件而非生成文件的位置，指定map文件的根路径，该选项会影响.map文件中的sources属性 */,
-    "inlineSources": true /* 用于指定是否进一步将.ts文件的内容也包含到输入文件中 */,
     /* Experimental Options */
     "experimentalDecorators": true /* 用于指定是否启用实验性的装饰器特性 */,
     "emitDecoratorMetadata": true /* 用于指定是否为装饰器提供元数据支持，关于元数据，也是ES6的新标准，可以通过Reflect提供的静态方法获取元数据，如果需要使用Reflect的一些方法，需要引入ES2015.Reflect这个库 */

@@ -10,6 +10,8 @@
 
 具体可以阅读上面这篇文章，了解实现思路。
 
+source map 复制后 需要使用 vscode 批量替换功能，替换 `../../../../packages` 为 `../../../../react/packages`，搜索范围为 `./public/react/static/**/*.map`
+
 
 ## Overview
 
@@ -36,8 +38,6 @@ React 中 react 代码非常简单，都是提供一些 基本类型 和 工厂�
 ## Render
 
 * [常见数据结构](./articles/struct.md)
-* [render](./articles/ReactDOM.render.md)
-* [updateContainer](./articles/updateContainer.md)
-* [Schedule](./articles/Schedule.md)
-* [Lane](./articles/Lane.md)
+* [创建更新](./articles/createUpdate.md)
 * [Fiber](./articles/Fiber.md)
+* [Schedule](./articles/Schedule.md)

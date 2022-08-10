@@ -3,22 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.3.0",
-    "@testing-library/user-event": "^13.5.0",
     "@types/node": "^18.6.3",
-    "@types/react": "^18.0.15",
-    "@types/react-dom": "^18.0.6",
-    "@types/react-router-dom": "^5.3.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "6",
+    "@types/react": "16.14.30",
+    "@types/react-dom": "16.9.16",
+    "react": "16.8.6",
+    "react-dom": "16.8.6",
     "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
-    "build:react": "cd react && yarn install && npm run build && cd .. && node ./tools/index.js",
+    "build:react": "cd react && yarn run build && cd .. && node ./tools/index.js",
     "build:copy": "node ./tools/index.js",
     "test": "react-app-rewired test --env=jsdom"
   },

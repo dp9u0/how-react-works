@@ -1,12 +1,10 @@
 # How React Works
 
-基于 18.2.0 源码，解析React 工作原理
-
 ## First Of All
 
 项目基于这篇文章搭建了 react debug 环境： https://juejin.cn/post/7126501202866470949
 
-可以运行 npm run build:react，构建 react 并将生成的bundle 文件复制到 public 目录下，修改了 react 18.2.0 源码 build scripts，可以生成 source map
+可以运行 npm run build:react，构建 react 并将生成的bundle 文件复制到 public 目录下，修改了 react 源码 build scripts，可以生成 source map
 
 具体可以阅读上面这篇文章，了解实现思路。
 
@@ -38,6 +36,6 @@ React 中 react 代码非常简单，都是提供一些 基本类型 和 工厂�
 ## Render
 
 * [常见数据结构](./articles/struct.md)
-* [创建更新](./articles/createUpdate.md)
+* [创建更新](./articles/scheduleWork.md)
 * [Fiber](./articles/Fiber.md)
 * [Schedule](./articles/Schedule.md)

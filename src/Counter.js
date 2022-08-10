@@ -6,7 +6,9 @@ export class Counter extends Component {
     const { counter } = this.state;
     return (
       <div>
-        <button style={{ margin: 50 }} onClick={() => this.setState({ counter: counter + 1 })}>Count</button>
+        <button style={{ margin: 50 }} onClick={() => {
+          this.setState({ counter: counter + 1 })
+        }}>Count</button>
         {counter}
 
       </div>

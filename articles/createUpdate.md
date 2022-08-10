@@ -1,5 +1,0 @@
-# createUpdate
-
-## render
-
-## setState forceRender

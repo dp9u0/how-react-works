@@ -1,6 +1,6 @@
 # React.Component
 
-Component 和 PureComponent 代码在 [ReactBaseClasses](../react/packages/react/src/ReactBaseClasses.js) 中。
+Component 和 PureComponent 代码在 [ReactBaseClasses](../react/packages/react/src/ReactBaseClasses.js#66) 中。
 
 非常简单，关于生命周期等定义，在 react-dom 中，后面还会谈到。
 

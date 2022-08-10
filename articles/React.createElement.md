@@ -48,7 +48,7 @@ const Counter = () => /*#__PURE__*/React.createElement("div", null);
 
 ## React.createElemnet
 
-源码参考 [ReactElement](../react/packages/react/src/ReactElement.js)
+源码参考 [ReactElement](../react/packages/react/src/ReactElement.js#171)
 
 关于API: `function createElement(type, config, children){}`，参数：
 
@@ -116,4 +116,4 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
   };
 ```
 
-关于 `$$typeof:` : 可以看到，ReactElement 中 `$$typeof` 的值为 REACT_ELEMENT_TYPE ，REACT_XXX_TYPE 是一系列 Symbol 声明（[Symbol声明](../react/packages/shared/ReactSymbols.js)）对于 react 提供的 createXXX ，如 forwardRef(createRef)/createPortal/createContext 都返回类似 ReactElement 结构，都有一个 `$$typeof`，在 render 阶段通过 `$$typeof` 区分 element 类型。
+关于 `$$typeof:` : 可以看到，ReactElement 中 `$$typeof` 的值为 REACT_ELEMENT_TYPE ，REACT_XXX_TYPE 是一系列 Symbol 声明（[Symbol声明](../react/packages/shared/ReactSymbols.js#14)）对于 react 提供的 createXXX ，如 forwardRef(createRef)/createPortal/createContext 都返回类似 ReactElement 结构，都有一个 `$$typeof`，在 render 阶段通过 `$$typeof` 区分 element 类型。

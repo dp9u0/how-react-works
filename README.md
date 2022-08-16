@@ -8,8 +8,9 @@
 
 具体可以阅读上面这篇文章，了解实现思路。
 
-source map 复制后 需要使用 vscode 批量替换功能，替换 `../../../../packages` 为 `../../../../react/packages`，搜索范围为 `./public/react/static/**/*.map`
+source map 复制后 可以使用 vscode 批量替换功能，替换 `../../../../packages` 为 `../../../../react/packages`，搜索范围为 `./public/react/static/**/*.map`
 
+build scripts ：./react/scripts/rollup/build.js 中其实已经修改了 sourcemap 转换，但是没有生效，研究了半天没啥结果，就不浪费时间了。
 
 ## Overview
 

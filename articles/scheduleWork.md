@@ -18,7 +18,7 @@ legacyRenderSubtreeIntoContainer:
 * [updateContainerAtExpirationTime](../react/packages/react-reconciler/src/ReactFiberReconciler.js#162)
 * [scheduleRootUpdate](../react/packages/react-reconciler/src/ReactFiberReconciler.js#115)
 
-最终走到 [scheduleWork](../react/packages/react-reconciler/src/ReactFiberScheduler.js#115)
+最终走到 [scheduleWork](../react/packages/react-reconciler/src/ReactFiberScheduler.js#1851)
 
 ## setState forceRender
 
@@ -46,8 +46,16 @@ enqueueSetState(inst, payload, callback) {
 
 ## requestCurrentTime
 
+[requestCurrentTime](../react/packages/react-reconciler/src/ReactFiberScheduler.js#2040)
+
 ## computeExpirationForFiber
+
+[computeExpirationForFiber](../react/packages/react-reconciler/src/ReactFiberScheduler.js#1595)
 
 ## enqueueUpdate
 
+[enqueueUpdate](../react/packages/react-reconciler/src/ReactUpdateQueue.js#220)
+
 ## scheduleWork
+
+[computeExpirationForFiber](../react/packages/react-reconciler/src/ReactFiberScheduler.js#1851)

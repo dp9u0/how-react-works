@@ -48,14 +48,134 @@ enqueueSetState(inst, payload, callback) {
 
 [requestCurrentTime](../react/packages/react-reconciler/src/ReactFiberScheduler.js#2040)
 
+React 使用 currentTimeMs 转化为 ExpirationTime ，用来表示任务的 **`优先级`**，之所以使用优先级而不是过期时间，根据最新(16.8.x)的 requestCurrentTime 的实现，优先级更为合适，表示为 ExpirationTime 的 currentTime 越大，表示任务优先级越高。
+
+```
+0 - NoWork
+1 - Never
+...
+big - low pri things
+even bigger - hi pri things
+max 31-bit int - Sync
+```
+
+也就是发生的更新越早，优先级越高。
+
+这涉及到几次调整 ： https://github.com/facebook/react/pull/13912 ，https://github.com/facebook/react/pull/13904
+
 ## computeExpirationForFiber
 
-[computeExpirationForFiber](../react/packages/react-reconciler/src/ReactFiberScheduler.js#1595)
+计算 expirationTime : [computeExpirationForFiber](../react/packages/react-reconciler/src/ReactFiberScheduler.js#1595)
+
+通过 currentTime 计算 expirationTime ，将 currentTime 按照 bucket size(bucketSizeMs) 和 expiration(expirationInMs) 落到不同的 buckets，其目的是让时间临近的一批更新，可以得到相同的expiration time，即实现批量更新。
+
+还有就是交互触发的更新，拥有更小的 bucket size 和 expiration，会让这类更新调度更加频繁
 
 ## enqueueUpdate
 
 [enqueueUpdate](../react/packages/react-reconciler/src/ReactUpdateQueue.js#220)
 
+创建更新，将更新添加到 fiber.updateQueue 等待被调度到 这个 fiber 的时候执行。
+
+```js
+appendUpdateToQueue(fiber.updateQueue, update);
+```
+
 ## scheduleWork
 
-[computeExpirationForFiber](../react/packages/react-reconciler/src/ReactFiberScheduler.js#1851)
+[scheduleWork](../react/packages/react-reconciler/src/ReactFiberScheduler.js#1851)
+
+```js
+function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
+  // 找到 fiber 的 root 节点
+  const root = scheduleWorkToRoot(fiber, expirationTime);
+  // TIPS: 
+  // 当前没有work 在执行render 或者 commit 阶段为 true) 
+  // nextRenderExpirationTime !== NoWork 下个 RenderExpirationTime(renderRoot 时 会设置为 root 的expirationTime,结束后设置为 NoWork)
+  // 新任务额优先级高于当前渲染任务 expirationTime > nextRenderExpirationTime
+  // 保存当前的 Stack
+  if (!isWorking && nextRenderExpirationTime !== NoWork && expirationTime > nextRenderExpirationTime) {
+    // This is an interruption.
+    interruptedBy = fiber;
+    resetStack();
+  }
+  markPendingPriorityLevel(root, expirationTime);
+  // If we're in the render phase, we don't need to schedule this root
+  // for an update, because we'll do it before we exit...、
+  // ...unless this is a different root than the one we're rendering.
+  // !isWorking || isCommitting 实际上表示 render 阶段
+  if (!isWorking || isCommitting || nextRoot !== root 
+  ) {    
+    const rootExpirationTime = root.expirationTime;
+    // 请求调度 root
+    requestWork(root, rootExpirationTime);
+  }
+}
+```
+
+接下来分别看下 `scheduleWorkToRoot` `markPendingPriorityLevel` `requestWork` 分别做了什么东西。
+
+### scheduleWorkToRoot
+
+```js
+function scheduleWorkToRoot(fiber: Fiber, expirationTime): FiberRoot | null {
+  // Update the source fiber's expiration time
+  if (fiber.expirationTime < expirationTime) {
+    fiber.expirationTime = expirationTime;
+  }
+  let alternate = fiber.alternate;
+  if (alternate !== null && alternate.expirationTime < expirationTime) {
+    alternate.expirationTime = expirationTime;
+  }
+  // Walk the parent path to the root and update the child expiration time.
+  let node = fiber.return;
+  let root = null;
+  if (node === null && fiber.tag === HostRoot) { // 说明 fiber 是最顶层节点了 对应的 stateNode 就是 fiberRoot
+    root = fiber.stateNode;
+  } else {
+    while (node !== null) {
+      alternate = node.alternate;
+      // 更新 node 的 childExpirationTime 用于快速判断 一个 fiber node 子树上是否有需要执行的任务
+      if (node.childExpirationTime < expirationTime) {
+        node.childExpirationTime = expirationTime;
+        if (
+          alternate !== null &&
+          alternate.childExpirationTime < expirationTime
+        ) {
+          alternate.childExpirationTime = expirationTime;
+        }
+      } else if (
+        alternate !== null &&
+        alternate.childExpirationTime < expirationTime
+      ) {
+        alternate.childExpirationTime = expirationTime;
+      }
+      if (node.return === null && node.tag === HostRoot) {
+        root = node.stateNode;
+        break;
+      }
+      node = node.return;
+    }
+  }
+  return root;
+}
+```
+
+### markPendingPriorityLevel
+
+更新 root 上 的 earliestPendingTime 和  latestPendingTime
+
+```js
+if (earliestPendingTime < expirationTime) {
+  // This is the earliest pending update.
+  root.earliestPendingTime = expirationTime;
+} else {
+  const latestPendingTime = root.latestPendingTime;
+  if (latestPendingTime > expirationTime) {
+    // This is the latest pending update
+    root.latestPendingTime = expirationTime;
+  }
+}
+```
+
+findNextExpirationTimeToWorkOn

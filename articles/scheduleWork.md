@@ -178,4 +178,15 @@ if (earliestPendingTime < expirationTime) {
 }
 ```
 
-findNextExpirationTimeToWorkOn
+更新 earliestPendingTime 和  latestPendingTime 后，还需要调用 findNextExpirationTimeToWorkOn ，根据 
+
+```js
+const earliestSuspendedTime = root.earliestSuspendedTime;
+const latestSuspendedTime = root.latestSuspendedTime;
+const earliestPendingTime = root.earliestPendingTime;
+const latestPingedTime = root.latestPingedTime;
+```
+
+更新 root 上的 expirationTime 和 nextExpirationTimeToWorkOn
+
+## requestWork

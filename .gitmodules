@@ -1,4 +1,4 @@
 [submodule "react"]
 	path = react
 	url = git@github.com:dp9u0/react.git
-	branch = 18.2.0
+	branch = 16.8.6

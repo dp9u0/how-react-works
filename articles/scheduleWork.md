@@ -190,3 +190,51 @@ const latestPingedTime = root.latestPingedTime;
 更新 root 上的 expirationTime 和 nextExpirationTimeToWorkOn
 
 ## requestWork
+
+```js
+function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
+  addRootToSchedule(root, expirationTime)
+  if (isRendering) {
+    // Prevent reentrancy. Remaining work will be scheduled at the end of
+    // the currently rendering batch.
+    // 如果正在渲染 则不需要调度 因为当前已经在执行 root 上的任务了
+    // 等待当前任务执行完 会执行当前添加的任务
+    return;
+  }
+
+  if (expirationTime === Sync) {
+    // 同步执行
+    performSyncWork()
+  } else {
+    // 交给 scheduler 调度
+    scheduleCallbackWithExpirationTime(root, expirationTime) // => performAsyncWork
+  }
+}
+
+function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
+  // Add the root to the schedule.
+  // Check if this root is already part of the schedule.
+  if (root.nextScheduledRoot === null) {
+    // This root is not already scheduled. Add it.
+    root.expirationTime = expirationTime
+    if (lastScheduledRoot === null) {
+      firstScheduledRoot = lastScheduledRoot = root
+      root.nextScheduledRoot = root
+    } else {
+      lastScheduledRoot.nextScheduledRoot = root
+      lastScheduledRoot = root
+      lastScheduledRoot.nextScheduledRoot = firstScheduledRoot
+    }
+  } else {
+    // This root is already scheduled, but its priority may have increased.
+    const remainingExpirationTime = root.expirationTime
+    if (
+      remainingExpirationTime === NoWork ||
+      expirationTime < remainingExpirationTime
+    ) {
+      // Update the priority.
+      root.expirationTime = expirationTime
+    }
+  }
+}
+```

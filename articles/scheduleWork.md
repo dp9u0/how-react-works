@@ -238,3 +238,40 @@ function addRootToSchedule(root: FiberRoot, expirationTime: ExpirationTime) {
   }
 }
 ```
+
+`scheduleCallbackWithExpirationTime` ,是将 fiberRoot 交给 Scheduler（可以参看 [Scheduler](./Scheduler.md)）
+
+```js
+function scheduleCallbackWithExpirationTime(
+  root: FiberRoot,
+  expirationTime: ExpirationTime,
+) {
+  if (callbackExpirationTime !== NoWork) {
+    // A callback is already scheduled. Check its expiration time (timeout).
+    if (expirationTime < callbackExpirationTime) {
+      // Existing callback has sufficient timeout. Exit.
+      return;
+    } else {
+      if (callbackID !== null) {
+        // Existing callback has insufficient timeout. Cancel and schedule a
+        // new one.
+        cancelDeferredCallback(callbackID);
+      }
+    }
+    // The request callback timer is already running. Don't start a new one.
+  } else {
+    startRequestCallbackTimer();
+  }
+
+  callbackExpirationTime = expirationTime;
+  const currentMs = now() - originalStartTimeMs;
+  const expirationTimeMs = expirationTimeToMs(expirationTime);
+  const timeout = expirationTimeMs - currentMs;
+  // react\packages\react-dom\src\client\ReactDOMHostConfig.js
+  // import {
+  // unstable_scheduleCallback as scheduleDeferredCallback,
+  // unstable_cancelCallback as cancelDeferredCallback,
+  // } from 'scheduler';
+  callbackID = scheduleDeferredCallback(performAsyncWork, {timeout});
+}
+```

@@ -50,7 +50,7 @@ enqueueSetState(inst, payload, callback) {
 
 React 使用 currentTimeMs 转化为 ExpirationTime ，用来表示任务的 **`优先级`**，之所以使用优先级而不是过期时间，根据最新(16.8.x)的 requestCurrentTime 的实现，优先级更为合适，表示为 ExpirationTime 的 currentTime 越大，表示任务优先级越高。
 
-```
+```js
 0 - NoWork
 1 - Never
 ...

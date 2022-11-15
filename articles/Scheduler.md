@@ -35,28 +35,28 @@ function ensureHostCallbackIsScheduled() {
 requestHostCallback 是 React 对 requestIdleCallback 的 polyfill，这个方案简单来说是通过 requestAnimationFrame 在浏览器渲染一帧前，通过 `port.postMessage()` 实现将回调插入到 macro task 中，在渲染完成后执行回调。
 
 ```js
-  requestHostCallback = function(callback, absoluteTimeout) {
-    scheduledHostCallback = callback;
-    timeoutTime = absoluteTimeout;
-    if (isFlushingHostCallback || absoluteTimeout < 0) {
-      // Don't wait for the next frame. Continue working ASAP, in a new event.
-      // 不需要等到下一次 animationTick 直接
-      port.postMessage(undefined);
-    } else if (!isAnimationFrameScheduled) {
-      // If rAF didn't already schedule one, we need to schedule a frame.
-      // TODO: If this rAF doesn't materialize because the browser throttles, we
-      // might want to still have setTimeout trigger rIC as a backup to ensure
-      // that we keep performing work.
-      isAnimationFrameScheduled = true;
-      requestAnimationFrameWithTimeout(animationTick);
-    }
-  };
+requestHostCallback = function(callback, absoluteTimeout) {
+  scheduledHostCallback = callback;
+  timeoutTime = absoluteTimeout;
+  if (isFlushingHostCallback || absoluteTimeout < 0) {
+    // Don't wait for the next frame. Continue working ASAP, in a new event.
+    // 不需要等到下一次 animationTick 直接 postMessage 等待执行回调
+    port.postMessage(undefined);
+  } else if (!isAnimationFrameScheduled) {
+    // If rAF didn't already schedule one, we need to schedule a frame.
+    // TODO: If this rAF doesn't materialize because the browser throttles, we
+    // might want to still have setTimeout trigger rIC as a backup to ensure
+    // that we keep performing work.
+    isAnimationFrameScheduled = true;
+    requestAnimationFrameWithTimeout(animationTick); // 在 rAF 前 postMessage  等待执行回调
+  }
+};
 
-  cancelHostCallback = function() {
-    scheduledHostCallback = null;
-    isMessageEventScheduled = false;
-    timeoutTime = -1;
-  };
+cancelHostCallback = function() {
+  scheduledHostCallback = null;
+  isMessageEventScheduled = false;
+  timeoutTime = -1;
+};
 ```
 
 ```js
@@ -122,6 +122,52 @@ var animationTick = function(rafTime) {
   if (!isMessageEventScheduled) {
     isMessageEventScheduled = true;
     port.postMessage(undefined);
+  }
+};
+```
+
+这里是通过 postMessage 触发执行回调的地方:
+
+```js
+channel.port1.onmessage = function(event) {
+  isMessageEventScheduled = false;
+
+  var prevScheduledCallback = scheduledHostCallback;
+  var prevTimeoutTime = timeoutTime;
+  scheduledHostCallback = null;
+  timeoutTime = -1;
+
+  var currentTime = getCurrentTime();
+
+  var didTimeout = false;
+  if (frameDeadline - currentTime <= 0) {
+    // There's no time left in this idle period. Check if the callback has
+    // a timeout and whether it's been exceeded.
+    if (prevTimeoutTime !== -1 && prevTimeoutTime <= currentTime) {
+      // Exceeded the timeout. Invoke the callback even though there's no
+      // time left.
+      didTimeout = true;
+    } else {
+      // No timeout.
+      if (!isAnimationFrameScheduled) {
+        // Schedule another animation callback so we retry later.
+        isAnimationFrameScheduled = true;
+        requestAnimationFrameWithTimeout(animationTick);
+      }
+      // Exit without invoking the callback.
+      scheduledHostCallback = prevScheduledCallback;
+      timeoutTime = prevTimeoutTime;
+      return;
+    }
+  }
+
+  if (prevScheduledCallback !== null) {
+    isFlushingHostCallback = true;
+    try {
+      prevScheduledCallback(didTimeout);
+    } finally {
+      isFlushingHostCallback = false;
+    }
   }
 };
 ```

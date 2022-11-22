@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 
 export class Counter extends Component {
-  state = { counter: 1 }
+  state = { counter: 1 };
+
   render() {
     const { counter } = this.state;
     return (
@@ -10,7 +11,6 @@ export class Counter extends Component {
           this.setState({ counter: counter + 1 })
         }}>Count</button>
         {counter}
-
       </div>
     )
   }

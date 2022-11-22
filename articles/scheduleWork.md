@@ -178,7 +178,7 @@ if (earliestPendingTime < expirationTime) {
 }
 ```
 
-更新 earliestPendingTime 和  latestPendingTime 后，还需要调用 findNextExpirationTimeToWorkOn ，根据 
+更新 earliestPendingTime 和  latestPendingTime 后，还需要调用 findNextExpirationTimeToWorkOn ，根据
 
 ```js
 const earliestSuspendedTime = root.earliestSuspendedTime;

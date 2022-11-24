@@ -2,15 +2,11 @@
 
 ## First Of All
 
-项目基于这篇文章搭建了 react debug 环境： https://juejin.cn/post/7126501202866470949
+项目基于这篇文章搭建了 [react debug 环境](https://juejin.cn/post/7126501202866470949):
 
-可以运行 npm run build:react，构建 react 并将生成的bundle 文件复制到 public 目录下，修改了 react 源码 build scripts，可以生成 source map
+运行 npm run build:react，构建 react，修改了 react 源码 build scripts，可以生成 source map
 
-具体可以阅读上面这篇文章，了解实现思路。
-
-source map 复制后 可以使用 vscode 批量替换功能，替换 `../../../../packages` 为 `../../../../react/packages`，搜索范围为 `./public/react/static/**/*.map`
-
-build scripts ：./react/scripts/rollup/build.js 中其实已经修改了 sourcemap 转换，但是没有生效，研究了半天没啥结果，就不浪费时间了。
+构建后 可以通过 yarn link 将 react 和 react-dom 连接到 react/build/node_module ，这样就可以debug 了
 
 ## Overview
 

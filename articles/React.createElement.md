@@ -28,7 +28,7 @@ class Counter2 extends React.Component {
 const Counter = () => (<div></div>)
 ```
 
-通过 babel 转换为 
+通过 babel 转换为
 
 ```js
 const App = () => /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
@@ -48,7 +48,7 @@ const Counter = () => /*#__PURE__*/React.createElement("div", null);
 
 ## React.createElemnet
 
-源码参考 [ReactElement](../react/packages/react/src/ReactElement.js#171)
+源码参考 [ReactElement](../react/packages/react/src/ReactElement.js#348)
 
 关于API: `function createElement(type, config, children){}`，参数：
 

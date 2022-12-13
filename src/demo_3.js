@@ -9,9 +9,9 @@ export default function App() {
   }, [count]);
   return (
     <div>
-      xiao
+      demo
       <p onClick={() => setCount(() => count + 1)} title={count}>
-        chen
+        demo2
         {count}
       </p>
     </div>

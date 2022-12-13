@@ -1,8 +1,11 @@
-import React, { useLayoutEffect, useState, useEffect } from "react";
+import React, {
+  // useLayoutEffect,
+  useState, useEffect
+} from "react";
 
 export default function App() {
   const [count, setCount] = useState(0);
-  
+
   //用 useLayoutEffect 试试
   useEffect(() => {
     if (count === 0) {

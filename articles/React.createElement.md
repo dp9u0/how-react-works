@@ -59,7 +59,7 @@ const Counter = () => /*#__PURE__*/React.createElement("div", null);
 * config : 实际为 jsx 中的 props，不过 createElement 会对 config 做处理后创建 props
 * children ：可变参数，传入 children
 
-```js 
+```js
 export function createElement(type, config, children) {
   // STEP: 1. config 参数校验 : ref / key; 通过 config 创建 props
   const props = {}; // 注意 这里会通过 RESERVED_PROPS 跳过 key ref __source __self

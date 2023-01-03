@@ -27,7 +27,7 @@ React 中 react 代码非常简单，都是提供一些 基本类型 和 工厂�
 
 首先看下 React 中  react 这个 package 提供的基础功能，包括如何创建 Element 以及 Component。以及 React 提供的其他的部分接口，如 lazy ，memo，createRef，createContext等等，这些接口都在 react 源码中。
 
-关于 Component 和 Element 的区别可以阅读 React 官方 Blog: [React Components, Elements, and Instances](https://reactjs.org/blog/2015/12/18/react-components-elements-and-instances.html)，其中有一句话说明了 Components 和 Element  的关系 `Components Encapsulate Element Trees`：component 封装了 element（通过 class component render 方法 或者 直接通过 function component 返回一颗 element tree，即虚拟dom ），就是通过 React.createElement 创建这样一棵棵的 element tree 实现的。
+关于 Component 和 Element 的区别可以阅读 React 官方 Blog: [React Components, Elements, and Instances](https://reactjs.org/blog/2015/12/18/react-components-elements-and-instances.html)，其中有一句话说明了 Components 和 Element  的关系 `Components Encapsulate Element Trees`：component 封装了 element tree（通过 class component render 方法 或者 直接通过 function component 返回一颗 element tree，即虚拟dom ），就是通过 React.createElement 创建这样一棵棵的 element tree 实现的。
 
 关于 react 对外暴露的接口，可以阅读具体章节了解
 
@@ -38,18 +38,18 @@ React 中 react 代码非常简单，都是提供一些 基本类型 和 工厂�
 
 ### render via react-dom
 
-然后就是 react 的核心也就是 react-dom，部分
+然后就是 react 的核心也就是 react-dom
 
-* [RenderEntry](./articles/entry.md): 包括 legacy 和 concurrent 两种方式的 render 入口
+* [Entry](./articles/entry.md): 包括 legacy 和 concurrent 两种方式的 render 入口
 * [Fiber](./articles/fiber_struct.md)
 * [setState/forceRender](./articles/schedule.md)
 * [render](./articles/render.md)
 * [diff](./articles/diff.md)
 * [commit](./articles/commit.md)
 * [scheduler](./articles/scheduler.md)：介绍 v17 版本中的 Lane 和 Scheduler
+* [concurrent](./articles/concurrent.md)
 * [生命周期](./articles/lifecycle.md)
 * [hooks](./articles/hooks.md)
-* [concurrent](./articles/concurrent.md)
 * [context](./articles/context.md)
 * [事件](./articles/events.md)
 
@@ -60,3 +60,7 @@ React 中 react 代码非常简单，都是提供一些 基本类型 和 工厂�
 ## Others Tips
 
 TODO
+
+* React 设计理念：
+  * 异步可中断：Fiber
+  * Algebraic Effects：Suspense

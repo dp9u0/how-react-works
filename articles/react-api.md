@@ -171,7 +171,7 @@ pureComponentPrototype.isPureReactComponent = true;
 
 ## React.createRef
 
-我们在使用 [React.createRef](../react/packages/react/src/ReactCreateRef.js) 和 [React.forwardRef](../react/packages/react/src/forwardRef.js) 的时候，类似于下面的例子，由于 根据之前 [React.createElement](./React.createElement.md) 中 的分析 子组件 是无法通过props 获取到 ref 的，因此 只能通过 forwardRef 将 ref 传递过来。这是如何实现的呢？其实就是简单的render 参数传递，既然 props 无法传递，那多传递要给参数不就好了？
+我们在使用 [React.createRef](../react/packages/react/src/ReactCreateRef.js) 和 [React.forwardRef](../react/packages/react/src/ReactForwardRef.js) 的时候，类似于下面的例子，由于 根据之前 [React.createElement](./React.createElement.md) 中 的分析，子组件是无法通过props 访问 ref 的，因此只能通过 forwardRef 将 ref 传递过来。具体就是将 ref 作为 render 的参数传递
 
 ```js
 const FancyButton = React.forwardRef((props, ref) => (
@@ -197,7 +197,7 @@ export function createRef(): RefObject {
 React.forwardRef 做了什么事情：实际上创建了一个 element 类型 ，用于 Renderer 渲染时候处理
 
 ```js
-export function forwardRef(render: (props ref) => ReactNode){
+export function forwardRef(render: (props,ref) => ReactNode){
   return {
     $$typeof: REACT_FORWARD_REF_TYPE,
     render,

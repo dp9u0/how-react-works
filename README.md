@@ -16,12 +16,8 @@
 
 * [启动过程](./articles/init.md)
 * [创建任务](./articles/schedule-work.md)
-* [任务调度](./articles/scheduler.md)
+* [调度任务](./articles/scheduler.md)
 * [执行任务](./articles/reconciler.md)
 * [渲染](./articles/commit-root.md)
 
-### State
-
 ### 其他主题
-
-* Event

@@ -9,13 +9,25 @@
 
 ### Overview
 
+这个系列文章，主要涉及的包有：react（react\packages\react），react-dom（react\packages\react-dom），react-reconciler（react\packages\react-reconciler），scheduler（react\packages\scheduler）。
+
+* react：react 对外的接口基本上都由 react 包提供，如 createElement(jsx)，react Component 中的 setState 以及 生命周期函数，还有诸如 createRef 等接口
+* react-dom：可以称之为渲染器，负责提供（一种）渲染功能，提供接口(符合HostConfig协议)给 reconciler。
+* react-reconciler：协调器，负责接收上层的更新请求（updateContainer，scheduleUpdateOnFiber），将回调（performSyncWorkOnRoot）作为任务，调用 scheduler的unstable_scheduleCallback，添加到 任务队列中。
+* scheduler：调度器，负责调度 reconciler 的回调任务
+
 * [Overview](./articles/overview.md)
-* [React API](./articles/react-api.md)
+* [react 概览](./articles/package-react.md)
+* [react-dom 概览](./articles/package-react-dom.md)
+* [react-reconciler 概览](./articles/package-react-reconciler.md)
+* [scheduler 概览](./articles/package-scheduler.md)
 
 ### React 内核
 
-* [启动过程](./articles/init.md)
+* [React启动](./articles/bootstrap.md)
+* [reconciler运作流程](./articles/reconciler-workloop.md)
 * [创建任务](./articles/schedule-work.md)
+* [任务优先级](./articles/schedule-work-priority.md)
 * [调度任务](./articles/scheduler.md)
 * [执行任务](./articles/reconciler.md)
 * [渲染](./articles/commit-root.md)

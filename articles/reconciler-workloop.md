@@ -1,4 +1,4 @@
-# reconciler运作流程
+# reconciler 运作流程
 
 ## scheduleUpdateOnFiber
 

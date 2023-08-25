@@ -1,6 +1,10 @@
 import React from "react";
 
 class App extends React.Component {
+  componentDidMount() {
+    console.log(`App Mount`);
+    console.log(`App 组件对应的fiber节点: `, this._reactInternals);
+  }
   render() {
     return (
       <div className="app">

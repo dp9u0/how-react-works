@@ -25,7 +25,7 @@
 ### React 内核
 
 * [React启动](./articles/bootstrap.md)
-* [reconciler运作流程](./articles/reconciler-workloop.md)
+* [reconciler 运作流程](./articles/reconciler-workloop.md)
 * [创建任务](./articles/schedule-work.md)
 * [任务优先级](./articles/schedule-work-priority.md)
 * [调度任务](./articles/scheduler.md)

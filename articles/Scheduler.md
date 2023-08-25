@@ -1,173 +1,244 @@
-# Scheduler
+# scheduler
 
-## unstable_scheduleCallback
+## SchedulerHostConfig
 
-也就是被 reconciler 调用的 `scheduleDeferredCallback`
+[入口](https://github.com/facebook/react/blob/v17.0.2/packages/scheduler/src/forks/SchedulerHostConfig.default.js)
+
+### requestHostCallback
+
+### performWorkUntilDeadline
 
 ```js
-function unstable_scheduleCallback(callback, deprecated_options) {
-  var startTime = currentEventStartTime !== -1 ? currentEventStartTime : getCurrentTime();
-  // BLABLA
-  var newNode = {/* blabla */};
-  // Insert the new callback into the list, ordered first by expiration, then
-  // by insertion. So the new callback is inserted any other callback with
-  // equal expiration.
-  // 
-
-  ensureHostCallbackIsScheduled();
-  var previous = next.previous;
-  previous.next = next.previous = newNode;
-  newNode.next = next;
-  newNode.previous = previous;
-  }
+const performWorkUntilDeadline = () => {
+    if (scheduledHostCallback !== null) {
+      const currentTime = getCurrentTime();
+      // Yield after `yieldInterval` ms, regardless of where we are in the vsync
+      // cycle. This means there's always time remaining at the beginning of
+      // the message event.
+      deadline = currentTime + yieldInterval;
+      const hasTimeRemaining = true;
+      try {
+        const hasMoreWork = scheduledHostCallback(
+          hasTimeRemaining,
+          currentTime,
+        );
+        if (!hasMoreWork) {
+          isMessageLoopRunning = false;
+          scheduledHostCallback = null;
+        } else {
+          // If there's more work, schedule the next message event at the end
+          // of the preceding one.
+          port.postMessage(null);
+        }
+      } catch (error) {
+        // If a scheduler task throws, exit the current browser task so the
+        // error can be observed.
+        port.postMessage(null);
+        throw error;
+      }
+    } else {
+      isMessageLoopRunning = false;
+    }
+    // Yielding to the browser will give it a chance to paint, so we can
+    // reset this.
+    needsPaint = false;
+  };
 ```
 
+### shouldYieldToHost
+
+## Scheduler
+
 ```js
-function ensureHostCallbackIsScheduled() {
-  if (isExecutingCallback) {
-    // Don't schedule work yet; wait until the next time we yield.
-    return;
+var taskQueue = [];
+var timerQueue = [];
+```
+
+### unstable_scheduleCallback
+
+```js
+function unstable_scheduleCallback(priorityLevel, callback, options) {
+  var currentTime = getCurrentTime();
+
+  var startTime;
+  if (typeof options === 'object' && options !== null) {
+    var delay = options.delay;
+    if (typeof delay === 'number' && delay > 0) {
+      startTime = currentTime + delay;
+    } else {
+      startTime = currentTime;
+    }
+  } else {
+    startTime = currentTime;
   }
-  requestHostCallback(flushWork, expirationTime);
+
+  var timeout;
+  switch (priorityLevel) {
+    case ImmediatePriority:
+      timeout = IMMEDIATE_PRIORITY_TIMEOUT;
+      break;
+    case UserBlockingPriority:
+      timeout = USER_BLOCKING_PRIORITY_TIMEOUT;
+      break;
+    case IdlePriority:
+      timeout = IDLE_PRIORITY_TIMEOUT;
+      break;
+    case LowPriority:
+      timeout = LOW_PRIORITY_TIMEOUT;
+      break;
+    case NormalPriority:
+    default:
+      timeout = NORMAL_PRIORITY_TIMEOUT;
+      break;
+  }
+
+  var expirationTime = startTime + timeout;
+
+  var newTask = {
+    id: taskIdCounter++,
+    callback,
+    priorityLevel,
+    startTime,
+    expirationTime,
+    sortIndex: -1,
+  };
+  if (enableProfiling) {
+    newTask.isQueued = false;
+  }
+
+  if (startTime > currentTime) {
+    // This is a delayed task.
+    newTask.sortIndex = startTime;
+    push(timerQueue, newTask);
+    if (peek(taskQueue) === null && newTask === peek(timerQueue)) {
+      // All tasks are delayed, and this is the task with the earliest delay.
+      if (isHostTimeoutScheduled) {
+        // Cancel an existing timeout.
+        cancelHostTimeout();
+      } else {
+        isHostTimeoutScheduled = true;
+      }
+      // Schedule a timeout.
+      requestHostTimeout(handleTimeout, startTime - currentTime);
+    }
+  } else {
+    newTask.sortIndex = expirationTime;
+    push(taskQueue, newTask);
+    // Schedule a host callback, if needed. If we're already performing work,
+    // wait until the next time we yield.
+    if (!isHostCallbackScheduled && !isPerformingWork) {
+      isHostCallbackScheduled = true;
+      requestHostCallback(flushWork);
+    }
+  }
+
+  return newTask;
 }
 ```
 
-requestHostCallback 是 React 对 requestIdleCallback 的 polyfill，这个方案简单来说是通过 requestAnimationFrame 在浏览器渲染一帧前，通过 `port.postMessage()` 实现将回调插入到 macro task 中，在渲染完成后执行回调。
+### flushWork
 
 ```js
-requestHostCallback = function(callback, absoluteTimeout) {
-  scheduledHostCallback = callback;
-  timeoutTime = absoluteTimeout;
-  if (isFlushingHostCallback || absoluteTimeout < 0) {
-    // Don't wait for the next frame. Continue working ASAP, in a new event.
-    // 不需要等到下一次 animationTick 直接 postMessage 等待执行回调
-    port.postMessage(undefined);
-  } else if (!isAnimationFrameScheduled) {
-    // If rAF didn't already schedule one, we need to schedule a frame.
-    // TODO: If this rAF doesn't materialize because the browser throttles, we
-    // might want to still have setTimeout trigger rIC as a backup to ensure
-    // that we keep performing work.
-    isAnimationFrameScheduled = true;
-    requestAnimationFrameWithTimeout(animationTick); // 在 rAF 前 postMessage  等待执行回调
-  }
-};
-
-cancelHostCallback = function() {
-  scheduledHostCallback = null;
-  isMessageEventScheduled = false;
-  timeoutTime = -1;
-};
-```
-
-```js
-var ANIMATION_FRAME_TIMEOUT = 100;
-var rAFID;
-var rAFTimeoutID;
-var requestAnimationFrameWithTimeout = function(callback) {
-  // schedule rAF and also a setTimeout
-  rAFID = localRequestAnimationFrame(function(timestamp) {
-    // cancel the setTimeout
-    localClearTimeout(rAFTimeoutID);
-    callback(timestamp);
-  });
-  rAFTimeoutID = localSetTimeout(function() {
-    // cancel the requestAnimationFrame
-    localCancelAnimationFrame(rAFID);
-    callback(getCurrentTime());
-  }, ANIMATION_FRAME_TIMEOUT);
-};
-```
-
-```js
-var animationTick = function(rafTime) {
-  if (scheduledHostCallback !== null) {
-    // Eagerly schedule the next animation callback at the beginning of the
-    // frame. If the scheduler queue is not empty at the end of the frame, it
-    // will continue flushing inside that callback. If the queue *is* empty,
-    // then it will exit immediately. Posting the callback at the start of the
-    // frame ensures it's fired within the earliest possible frame. If we
-    // waited until the end of the frame to post the callback, we risk the
-    // browser skipping a frame and not firing the callback until the frame
-    // after that.
-    requestAnimationFrameWithTimeout(animationTick);
-  } else {
-    // No pending work. Exit.
-    isAnimationFrameScheduled = false;
-    return;
+function flushWork(hasTimeRemaining, initialTime) {
+  if (enableProfiling) {
+    markSchedulerUnsuspended(initialTime);
   }
 
-  var nextFrameTime = rafTime - frameDeadline + activeFrameTime;
-  if (
-    nextFrameTime < activeFrameTime &&
-    previousFrameTime < activeFrameTime
-  ) {
-    if (nextFrameTime < 8) {
-      // Defensive coding. We don't support higher frame rates than 120hz.
-      // If the calculated frame time gets lower than 8, it is probably a bug.
-      nextFrameTime = 8;
-    }
-    // If one frame goes long, then the next one can be short to catch up.
-    // If two frames are short in a row, then that's an indication that we
-    // actually have a higher frame rate than what we're currently optimizing.
-    // We adjust our heuristic dynamically accordingly. For example, if we're
-    // running on 120hz display or 90hz VR display.
-    // Take the max of the two in case one of them was an anomaly due to
-    // missed frame deadlines.
-    activeFrameTime =
-      nextFrameTime < previousFrameTime ? previousFrameTime : nextFrameTime;
-  } else {
-    previousFrameTime = nextFrameTime;
+  // We'll need a host callback the next time work is scheduled.
+  isHostCallbackScheduled = false;
+  if (isHostTimeoutScheduled) {
+    // We scheduled a timeout but it's no longer needed. Cancel it.
+    isHostTimeoutScheduled = false;
+    cancelHostTimeout();
   }
-  frameDeadline = rafTime + activeFrameTime;
-  if (!isMessageEventScheduled) {
-    isMessageEventScheduled = true;
-    port.postMessage(undefined);
-  }
-};
-```
 
-这里是通过 postMessage 触发执行回调的地方:
-
-```js
-channel.port1.onmessage = function(event) {
-  isMessageEventScheduled = false;
-
-  var prevScheduledCallback = scheduledHostCallback;
-  var prevTimeoutTime = timeoutTime;
-  scheduledHostCallback = null;
-  timeoutTime = -1;
-
-  var currentTime = getCurrentTime();
-
-  var didTimeout = false;
-  if (frameDeadline - currentTime <= 0) {
-    // There's no time left in this idle period. Check if the callback has
-    // a timeout and whether it's been exceeded.
-    if (prevTimeoutTime !== -1 && prevTimeoutTime <= currentTime) {
-      // Exceeded the timeout. Invoke the callback even though there's no
-      // time left.
-      didTimeout = true;
-    } else {
-      // No timeout.
-      if (!isAnimationFrameScheduled) {
-        // Schedule another animation callback so we retry later.
-        isAnimationFrameScheduled = true;
-        requestAnimationFrameWithTimeout(animationTick);
+  isPerformingWork = true;
+  const previousPriorityLevel = currentPriorityLevel;
+  try {
+    if (enableProfiling) {
+      try {
+        return workLoop(hasTimeRemaining, initialTime);
+      } catch (error) {
+        if (currentTask !== null) {
+          const currentTime = getCurrentTime();
+          markTaskErrored(currentTask, currentTime);
+          currentTask.isQueued = false;
+        }
+        throw error;
       }
-      // Exit without invoking the callback.
-      scheduledHostCallback = prevScheduledCallback;
-      timeoutTime = prevTimeoutTime;
-      return;
+    } else {
+      // No catch in prod code path.
+      return workLoop(hasTimeRemaining, initialTime);
+    }
+  } finally {
+    currentTask = null;
+    currentPriorityLevel = previousPriorityLevel;
+    isPerformingWork = false;
+    if (enableProfiling) {
+      const currentTime = getCurrentTime();
+      markSchedulerSuspended(currentTime);
     }
   }
+}
+```
 
-  if (prevScheduledCallback !== null) {
-    isFlushingHostCallback = true;
-    try {
-      prevScheduledCallback(didTimeout);
-    } finally {
-      isFlushingHostCallback = false;
+### workLoop
+
+```js
+function workLoop(hasTimeRemaining, initialTime) {
+  let currentTime = initialTime;
+  advanceTimers(currentTime);
+  currentTask = peek(taskQueue);
+  while (
+    currentTask !== null &&
+    !(enableSchedulerDebugging && isSchedulerPaused)
+  ) {
+    if (
+      currentTask.expirationTime > currentTime &&
+      (!hasTimeRemaining || shouldYieldToHost())
+    ) {
+      // This currentTask hasn't expired, and we've reached the deadline.
+      break;
     }
+    const callback = currentTask.callback;
+    if (typeof callback === 'function') {
+      currentTask.callback = null;
+      currentPriorityLevel = currentTask.priorityLevel;
+      const didUserCallbackTimeout = currentTask.expirationTime <= currentTime;
+      if (enableProfiling) {
+        markTaskRun(currentTask, currentTime);
+      }
+      const continuationCallback = callback(didUserCallbackTimeout);
+      currentTime = getCurrentTime();
+      if (typeof continuationCallback === 'function') {
+        currentTask.callback = continuationCallback;
+        if (enableProfiling) {
+          markTaskYield(currentTask, currentTime);
+        }
+      } else {
+        if (enableProfiling) {
+          markTaskCompleted(currentTask, currentTime);
+          currentTask.isQueued = false;
+        }
+        if (currentTask === peek(taskQueue)) {
+          pop(taskQueue);
+        }
+      }
+      advanceTimers(currentTime);
+    } else {
+      pop(taskQueue);
+    }
+    currentTask = peek(taskQueue);
   }
-};
+  // Return whether there's additional work
+  if (currentTask !== null) {
+    return true;
+  } else {
+    const firstTimer = peek(timerQueue);
+    if (firstTimer !== null) {
+      requestHostTimeout(handleTimeout, firstTimer.startTime - currentTime);
+    }
+    return false;
+  }
+}
 ```

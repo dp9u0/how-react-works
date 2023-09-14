@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './sample1';
+import App from './sample2';
 const rootNode1 = document.getElementById('root')
-ReactDOM.render(<App test/>, rootNode1);
+ReactDOM.render(<App/>, rootNode1);
 
 console.log(React.version)

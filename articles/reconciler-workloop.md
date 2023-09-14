@@ -1,13 +1,2 @@
-# reconciler 运作流程
+# reconciler 整体流程
 
-## scheduleUpdateOnFiber
-
-## scheduleCallback
-
-## performWorkOnRoot
-
-### performSyncWorkOnRoot
-
-### performConcurrentWorkOnRoot
-
-## commitRootImpl

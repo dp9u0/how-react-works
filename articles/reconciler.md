@@ -46,11 +46,15 @@
 
 ### updateXXX
 
-1. 计算fiber.memoizedState
-2. 获取下级ReactElement对象
-3. 根据下级ReactElement对象,调用reconcileChildren生成下级Fiber节点(只生成次级子节点)
+1. 计算 fiber.memoizedState
+2. 根据 fiber.memoizedState/fiber.type 等获取下级 ReactElement (nextChildren) 对象
+   1. updateHostRoot
+   2. updateClassComponent
+3. 根据下级 `ReactElement (nextChildren)` 对象,调用 `reconcileChildren(current:Fiber,workInProgress:Fiber,nextChildren:ReactElement|Array<ReactElement>|any)`生成下级Fiber节点(只生成次级子节点)
 
-### processUpdateQueue
+#### processUpdateQueue
+
+#### reconcileChildren
 
 ## completeUnitOfWork
 
